@@ -10,10 +10,24 @@ from mininet.link import Link, Intf, TCLink
 from mininet.cli import CLI
 from mininet.log import setLogLevel, info
 from functools import partial
-import sys
+import sys, time
 flush=sys.stdout.flush
+import os
 
-def WifiNet(n, m, IP):
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+
+def WifiNet(n, m, IP, req, cap):
 
     net = Mininet(switch=OVSKernelSwitch)
 
@@ -34,7 +48,7 @@ def WifiNet(n, m, IP):
     hosts.append('dest')
     for i in range(1, n+1):
         hosts.append('ship'+str(i))
-    for i in range(1, n+m+1):
+    for i in range(1, n+m+2):
         switches.append('s'+str(i))
     #hosts = ['h1', 'h2']
     #switches = ['s1', 's2', 's3', 's4', 's5', 's6', 's7']
@@ -45,7 +59,8 @@ def WifiNet(n, m, IP):
             links.append([switches[i-1], switches[j]])
         #links.append([switches[i-1],switches[i-1+n]])
     for i in range(n, m+n):
-        links.append([hosts[0], switches[i]])
+        links.append([switches[-1], switches[i]])
+    links.append([hosts[0], switches[-1]])
     print(links)
 
 
@@ -73,11 +88,34 @@ def WifiNet(n, m, IP):
     info('*** Starting network\n')
     net.start()
 
+    time.sleep(10)
+
     info( 'Testing network connectivity\n' )
     for i in range(1,n+1):
         nodes[hosts[i]].cmdPrint('ping 10.0.0.1 -c 3')
+################3 ATUO GENERATE RUNCONFIG AND DELETE.SH
 
-    dst=nodes[hosts[0]]
+    with cd("~/Desktop/scripts"):
+        file=open('runconfig.sh','w')
+        file.write("#!/bin/bash\n")
+        for i in range(1,n+1):
+            file.write('curl -X POST -d \'{"cmd":"ADD","dst-port":'+\
+            '"1","dst-switch":"00:00:00:00:00:00:00:0'+str(i)+'","src-switch":'+\
+            '"00:00:00:00:00:00:00:0'+str(i)+'","src-port":"1","requirement":"'+str(req[i-1])+'"}\''+\
+            ' http://'+IP+':8080/wm/fdm/config/json\n')
+
+        for i in range(m):
+            file.write('curl -X POST -d \'{"cmd":"ADD","dst-port":"'+str(i+1)+'",'+\
+            '"dst-switch":"00:00:00:00:00:00:00:0'+str(n+m+1)+'","src-switch":'+\
+            '"00:00:00:00:00:00:00:0'+str(n+1+i)+'","src-port":"'+str(n+1)+'","capacity":"'+str(cap[i])+'"}\''+\
+            ' http://'+IP+':8080/wm/fdm/config/json\n')
+        file.close()
+
+        call("./runconfig.sh")
+
+    time.sleep(10)
+
+    '''dst=nodes[hosts[0]]
 
     ports=[]
     for i in range(n):
@@ -91,7 +129,7 @@ def WifiNet(n, m, IP):
         #serverbw,_clientbw=net.iperf([src,dst],seconds=10)
         #info(serverbw, '\n')
         #flush()
-
+    '''
     CLI(net)
 
     net.stop()
@@ -99,4 +137,4 @@ def WifiNet(n, m, IP):
 
 if __name__ == '__main__':
     setLogLevel( 'info' )
-    WifiNet(3,3,"131.179.210.194")
+    WifiNet(3,3,"131.179.210.194",[6.0,6.0,6.0],[15.0,25.0,30.0])
