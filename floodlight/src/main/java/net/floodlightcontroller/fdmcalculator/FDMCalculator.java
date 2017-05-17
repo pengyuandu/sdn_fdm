@@ -44,7 +44,7 @@ import net.floodlightcontroller.fdmcalculator.Web.FdmWebRoutable;
 
 public class FDMCalculator implements IFDMCalculatorService, ITopologyListener, IFloodlightModule {
 
-	protected int FDMCALCULATE_INTERVAL = 1000;
+	protected int FDMCALCULATE_INTERVAL = 10000;
 	
 	protected static final Logger log = LoggerFactory.getLogger(FDMCalculator.class);
 
@@ -88,6 +88,7 @@ public class FDMCalculator implements IFDMCalculatorService, ITopologyListener, 
 				 * test version 1.0 calculate result every 0.5s;
 				 */
 				if(pathUpdates.peek()!=null){
+					log.info("*** start FDM calculation ***");
 					calculateFDM();
 					populatemeter();
 					//pathUpdates.clear();
@@ -241,6 +242,7 @@ public class FDMCalculator implements IFDMCalculatorService, ITopologyListener, 
 		ScheduledExecutorService ses = threadPoolService.getScheduledExecutor();
 		newInstanceTask = new SingletonTask(ses,new UpdateFDMTopologyWorker());
 		newInstanceTask.reschedule(FDMCALCULATE_INTERVAL, TimeUnit.MILLISECONDS);
+		log.info("***schedule FDM calculation***");
 		this.restApiService.addRestletRoutable(new FdmWebRoutable());
 		buildTopology();
 		log.info("rebuild topology");
@@ -437,14 +439,14 @@ public class FDMCalculator implements IFDMCalculatorService, ITopologyListener, 
 				Path p = fi.path;
 				List<NodePortTuple> nslist = new ArrayList<NodePortTuple>(p.getPath());
 				Collections.reverse(nslist);
-				log.info("in populatemeter : "+ fi.toString());
+				//log.info("in populatemeter : "+ fi.toString());
 				IOFSwitch  currentSwitch = switchService.getSwitch(nslist.get(1).getNodeId());
 	            OFPort currentPort = nslist.get(1).getPortId();         
 	            IOFSwitch  nextSwitch = switchService.getSwitch((nslist.get(2).getNodeId()));
 	            OFPort nextPort = nslist.get(2).getPortId();
 	            Float rate = getFlowBW(nslist.get(1).getNodeId(),currentPort,nslist.get(2).getNodeId(),nextPort);
 				dm.createMeter(currentSwitch, currentPort,nextSwitch,nextPort,rate);
-				log.info("bind mater "+ Float.toString(rate) + "on " + fi.toString());
+				//log.info("bind mater "+ Float.toString(rate) + "on " + fi.toString());
 				dm.bindMeterWithFlow(nslist.get(0).getPortId(),fi.getdst(),fi.gettcpdstport(), fi.getsrc(), currentSwitch, fi.gettcpsrcport(), new Path(p.getId(),nslist));
 			}
 		}
