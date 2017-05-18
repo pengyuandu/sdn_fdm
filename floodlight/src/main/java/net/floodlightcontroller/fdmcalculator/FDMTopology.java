@@ -152,7 +152,7 @@ class FDMTopology {
 		if(cuslinksmapping.containsKey(switchTuple)){
 			CustomizedLink link = cuslinksmapping.get(switchTuple);
 			int index = allLinks.indexOf(link);
-			log.debug("addPathtoTopology:find the source"+ link.toString() );
+			//log.debug("addPathtoTopology:find the source"+ link.toString() );
 			allLinks.set(index, link);
 			l.addLast(index);
 		}
@@ -193,7 +193,7 @@ class FDMTopology {
 		if(cuslinksmapping.containsKey(switchTuple)){
 			CustomizedLink link = cuslinksmapping.get(switchTuple);
 			int index = allLinks.indexOf(link);
-			log.info("addPathtoTopology:find the source"+ link.toString() );
+			//log.info("addPathtoTopology:find the source"+ link.toString() );
 			allLinks.set(index, link);
 			l.addLast(index);
 		}
@@ -213,7 +213,7 @@ class FDMTopology {
 		}
 		
 		ll.add(l);
-		log.info(path.getId().toString()+ll.toString());
+		//log.info(path.getId().toString()+ll.toString());
 		adjlinkfromswitch.put(path.getId(),ll);
 	}
 	

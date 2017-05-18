@@ -301,7 +301,7 @@ public class FDMCalculator implements IFDMCalculatorService, ITopologyListener, 
 			newset.add(fi);
 			activeuser.put(pathstr, newset);
 		}
-		log.info("addPath we need to check it out: " + p.toString());
+		//log.info("addPath we need to check it out: " + p.toString());
 		updatePath(pathstr,p,PathUpdate.ADD);
 		currentInstance.addPathtoTopology(p);
 	}
@@ -387,7 +387,7 @@ public class FDMCalculator implements IFDMCalculatorService, ITopologyListener, 
 			return Float.POSITIVE_INFINITY;
 		}
 		else {
-			log.info("cuslink mateched" + linkstr);
+			//log.info("cuslink mateched" + linkstr);
 			return cuslink.currentlinklength;
 		}
 	}
